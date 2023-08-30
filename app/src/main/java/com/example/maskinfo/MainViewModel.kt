@@ -1,5 +1,6 @@
 package com.example.maskinfo
 
+import android.location.Location
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,6 +17,8 @@ class MainViewModel : ViewModel() {
     val itemLiveData = MutableLiveData<List<Store>>()
     val loadingLiveData = MutableLiveData<Boolean>()
 
+    var location: Location? = null
+
     private val service: MaskService
 
     init {
@@ -29,16 +32,19 @@ class MainViewModel : ViewModel() {
             .build()
 
         service = retrofit.create(MaskService::class.java)
-
-        fetchStoreInfo()
     }
 
     fun fetchStoreInfo() {
         loadingLiveData.value = true
 
         viewModelScope.launch {
-            val storeInfo = service.fetchStoreInfo(37.188078, 127.043002)
-            itemLiveData.value = storeInfo.stores
+            val storeInfo = service.fetchStoreInfo(location?.latitude!!, location?.longitude!!)
+            for (store in storeInfo.stores) {
+                val distance = LocationDistance.getDistance(location?.latitude!!, location?.longitude!!, store.lat, store.lng)
+                store.distance = distance
+            }
+
+            itemLiveData.value = storeInfo.stores.sorted()
 
             loadingLiveData.value = false
         }
