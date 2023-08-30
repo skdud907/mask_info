@@ -20,7 +20,9 @@ import com.example.maskinfo.adapter.StoreAdapter
 import com.example.maskinfo.databinding.ActivityMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val mainViewModel: MainViewModel by viewModels()
@@ -47,23 +49,19 @@ class MainActivity : AppCompatActivity() {
             android.Manifest.permission.ACCESS_COARSE_LOCATION
         ))
 
-
-
         val storeAdapter = StoreAdapter()
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@MainActivity, RecyclerView.VERTICAL, false)
             adapter = storeAdapter
         }
 
-        mainViewModel.apply {
-            itemLiveData.observe(this@MainActivity) {
-                storeAdapter.updateItems(it)
-                supportActionBar?.title = "마스크 재고 있는 곳: " + it.size + "곳"
-            }
+        mainViewModel.itemLiveData.observe(this@MainActivity) {
+            storeAdapter.updateItems(it)
+            supportActionBar?.title = "마스크 재고 있는 곳: " + it.size + "곳"
+        }
 
-            loadingLiveData.observe(this@MainActivity) { isLoading ->
-                binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            }
+        mainViewModel.loadingLiveData.observe(this@MainActivity) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
     }
 
